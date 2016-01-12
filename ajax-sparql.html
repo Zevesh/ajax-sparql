@@ -1,4 +1,7 @@
-## &lt;ajax-sparql&gt;
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+
+<!--
 `ajax-sparql` is a simple component that automatizes the creation of a request for an SPARQL site just by taking an SPARQL query. That allows the code to be more readable, because you can see the original query instead of the resulting url. It can also be used to create queries based on the content of a variable, being not necessary to know the data at coding time. 
 
 When creating an instance of this component, we need to know the URL of the site where we will execute the query and the query itself. Sometimes we also need the graph inside the site, but usually it is optional.
@@ -105,3 +108,82 @@ query="select ?name where{ ?URI a schema:MedicalOrganization. ?URI rdfs:label ?n
   }
 </script>
 ```
+-->
+
+<dom-module id="ajax-sparql">
+  <template>
+      <iron-ajax 
+      id="request"
+      auto
+      handle-as="json"
+      url="{{url}}"
+      params="{{_params}}"
+      on-response="_saveContent"></iron-ajax>  
+
+            
+  </template>
+</dom-module>  
+
+
+<script>
+  Polymer({
+      is: 'ajax-sparql',
+      properties:{
+        /** URL of the SPARQL portal where the query is directed to. */
+        url: String,
+
+        /** 
+         *  The graph inside the portal in which the query will be executed. 
+         *  
+         *  If none is specified, the global graph (the empty string) will be used.
+         *  That works in almost all cases.
+         */  
+        graph: {
+          type: String,
+          value: ""
+        },
+
+        /** Well-formed SPARQL query that will be executed in the target portal. */
+        query: String,
+        
+        /** Object with the graph and query information to create the iron-ajax component. */
+        _params: Object,
+        
+        /** Array of objects inside json of the response. */
+        _result: new Array()
+      },
+
+      //Functions:
+
+      /** Intantiates for the first time the parameters and send the request. */
+      ready: function () {
+        this.calculateParams();
+      },
+
+      /** 
+       *  Creates a object of parameters accepted by the iron-ajax component based 
+       *  on the graph and query properties.
+       *  
+       *  Each time the parameters are modified, another request with the new version is
+       *  automatically lauched. That is thanks to a feature of iron-ajax.
+       */  
+      calculateParams: function (){
+        this._params = {"default-graph-uri": this.graph, "query": this.query};
+      },
+
+      /** 
+       *  Saves the array of objects in the returned json into the _result property. 
+       *  
+       *  @param {event} data related to the request and its response.
+       */
+      _saveContent: function(event){
+        this._result = event.detail.response.results.bindings;
+      },
+
+      /** @return {array} the objects obtained from the last response. */
+      getResults: function(){
+        return this._result;
+      }
+
+    });
+</script>

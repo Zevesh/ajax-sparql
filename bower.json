@@ -1,29 +1,27 @@
 {
-  "name": "timer-days",
+  "name": "ajax-sparql",
   "version": "1.0.0",
   "authors": [
     "Alejandro Acebes Cabrera <alejandroacb@gmail.com>"
   ],
-  "description": "A component to display a countdown expressed in days, hours, minutes and seconds until a deadline date.",
+  "description": "A component to automatize an SPARQL request based in a well-formed query.",
   "keywords": [
     "web-component",
     "web-components",
     "polymer",
-    "timer",
-    "countdown"
+    "ajax",
+    "sparql"
   ],
-  "main": "timer-days.html",
-  "license": "https://github.com/Zevesh/timer-days/blob/master/LICENSE",
-  "homepage": "https://github.com/Zevesh/timer-days/",
+  "main": "ajax-sparql.html",
+  "license": "https://github.com/Zevesh/ajax-sparql/blob/master/LICENSE",
+  "homepage": "https://github.com/Zevesh/ajax-sparql/",
   "ignore": [
     "/.*",
-    "/test/",
-    "/demo/"
+    "/test/"
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^1.0.0",
-    "paper-styles": "polymerelements/paper-styles#^1.0.0",
-    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#~1.0.3"
+    "iron-ajax": "polymerelements/iron-ajax#^1.0.0",
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

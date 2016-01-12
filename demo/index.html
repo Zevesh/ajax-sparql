@@ -1,114 +1,163 @@
 <!doctype html>
 <html>
-  <head>
-    <title>timer-days demo</title>
+    <head>
+        <title>ajax-sparql demo</title>
 
 
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-    <link rel="import" href="../bower_components/timer-days/timer-days.html">
-    <link rel="import" href="../bower_components/iron-demo-helpers/demo-snippet.html">
-    <link rel="import" href="../bower_components/iron-demo-helpers/demo-pages-shared-styles.html">
-  
-    <style is="custom-style" include="demo-pages-shared-styles">
-        .vertical-section-container {
-            max-width: 630px;
-        }
+        <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+        <link rel="import" href="../../polymer/polymer.html">
+        <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+        <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+        <link rel="import" href="../ajax-sparql.html">
+      
+        <style is="custom-style" include="demo-pages-shared-styles">
+            .vertical-section-container {
+                max-width: 630px;
+            }
 
-        paper-radio-button {
-            margin-right: 24px;
-        }
-    </style>
-  </head>
+            paper-radio-button {
+                margin-right: 24px;
+            }
+        </style>
+    </head>
 
-  <body unresolved>
+    <body unresolved>
+        <div class="vertical-section-container centered">
 
-    <div class="vertical-section-container centered">
+            <h3>Using ajax-sparql inside an external component:</h3>
+            <div>An ajax-sparql element can be located inside an external Polymer component. In that case, we can use the <b>asynchronous call</b> that it offers to retrieve and process the results.</div>
+            <demo-snippet class="centered-demo">
+                <template>
+                    <dom-module id="external-component">
+                        <template>
+                            <ajax-sparql 
+                            id="internal"
+                            url="http://opendata.caceres.es/sparql/"
+                            graph="http://opendata.caceres.es/recurso/salud/centros/"
+                            query="select ?name ?latitude ?longitude where{
+                              ?URI a schema:MedicalOrganization.
+                              ?URI rdfs:label ?name.
+                              ?URI geo:lat ?latitude.
+                              ?URI geo:long ?longitude. 
+                              } limit 5">
+                            </ajax-sparql>
 
-        <h3>A default timer can be displayed specifying the target date:</h3>
-        <demo-snippet class="centered-demo">
-            <template>
-                <timer-days target-date="2021-11-20T16:40:00"></timer-days>
-            </template>
-        </demo-snippet>
+                            <h3>Name and location of the first five pharmacies:</h3>
+                            <template is="dom-repeat" items="{{_pharmacies}}">
+                                <hr>
+                                <div>Name: <span>{{item.name.value}}</span></div>
+                                <div>Latitude: <span>{{item.latitude.value}}</span></div>
+                                <div>Longitude: <span>{{item.longitude.value}}</span></div>
+                            </template>
+                        </template>
+                    </dom-module>  
 
-        <h3>A timer can be written in different languages (English, Spanish, French, Portuguese, Italian and German at this moment):</h3>
-        <demo-snippet class="centered-demo">
-            <template>
-                <p><timer-days target-date="2017-11-20T16:40:00"></timer-days></p>
-                <p><timer-days target-date="2017-11-20T16:40:00" lang="es"></timer-days></p>
-                <p><timer-days target-date="2017-11-20T16:40:00" lang="fr"></timer-days></p>
-                <p><timer-days target-date="2017-11-20T16:40:00" lang="pt"></timer-days></p>
-                <p><timer-days target-date="2017-11-20T16:40:00" lang="it"></timer-days></p>
-                <p><timer-days target-date="2017-11-20T16:40:00" lang="de"></timer-days></p>
-            </template>
-        </demo-snippet>
+                    <script>
+                        Polymer({
+                          is: 'external-component',
+                          properties:{
+                            _pharmacies: Array,
+                          },
+                          ready: function(){
+                            this.async(this.checkResult, 300);
+                          },
+                          checkResult: function(){
+                            this._pharmacies = this.$.internal.getResults();
+                            if (this._pharmacies == undefined){
+                                this.async(this.checkResult, 300);
+                            }
+                          }
+                        });
+                    </script>
 
+                    <external-component></external-component>
+                </template>
+            </demo-snippet>
 
-        <h3>Timers with custom text before and after the numbers:</h3>
-        <demo-snippet class="centered-demo">
-            <template>
-                <p><timer-days target-date="2018-11-20T16:40:00" before="Your planet will be destroyed in about"></timer-days></p>
-                <p><timer-days target-date="2018-11-20T16:40:00" after="until they send HIM after you"></timer-days></p>
-                <p><timer-days target-date="2018-11-20T16:40:00" before="You still have" after="before something very bad happens"></timer-days></p>
-            </template>
-        </demo-snippet>
+            <h3>Using ajax-sparql without other component:</h3>
+            <div>In case our element is inside a common HTML, we have to do all the process with the functions of Javascript. In this demo we use the <b>setInterval and clearInterval</b> functions. You can use whichever method you prefer, even with another library or framework.</div>
+            <demo-snippet class="centered-demo">
+                <template>
+                    <ajax-sparql 
+                    id="withJS"
+                    url="http://opendata.caceres.es/sparql/"
+                    query="select ?name where{
+                      ?URI a schema:MedicalOrganization.
+                      ?URI rdfs:label ?name. 
+                      }">
+                    </ajax-sparql>
 
-        <h3>Some even more customized timers:</h3>
-        <demo-snippet class="centered-demo">
-            <template>
-                <style is="custom-style">
-                    #blackAndWhite {
-                        --timer-days-background-color: white;
-                        --timer-days-border-color: black;
-                        --timer-days-font-color: black;
+                    <div id="names"><h3>Name of available pharmacies:</h3></div>
+                    <script>
+                        var intervalName = setInterval(showNames, 300);
 
-                        --timer-days-hover-background-color: black;
-                        --timer-days-hover-border-color: white;
-                        --timer-days-hover-font-color: white;          
-                    }
+                        function showNames(){
+                            var results = document.getElementById("withJS").getResults();
+                            if (results != undefined){
+                                clearInterval(intervalName);
 
-                    #doesntChange {
-                        --timer-days-background-color: #0288D1;
-                        --timer-days-border-color: #424242;
-                        --timer-days-font-color: #E1F5FE;
+                                results.forEach(function(pharmacie){
+                                    var div = document.createElement("div");
+                                    var text = document.createTextNode(pharmacie.name.value);
+                                    div.appendChild(text);
+                                    document.getElementById("names").appendChild(div);
+                                });
+                            }
+                        }
+                    </script>
+                </template>
+            </demo-snippet>
 
-                        --timer-days-hover-background-color: #0288D1;
-                        --timer-days-hover-border-color: #424242;
-                        --timer-days-hover-font-color: #E1F5FE;          
-                    }
+            <h3>Dynamic creation of the query (based on a variable) and the request:</h3>
+            <p>One advantage of this component is that, like the query is not formated to enter in an URL, you can create use <b>one or more variables to create the final query</b>. This can be used, for example, to adjust the query to a particular id inside a loop. This example is far more simple and only serves to explain how ir can be done.</p>
+            <p>The above feature can be used regardless of how and where the element is declared. But we will use this example to explain one last way: <b>create and insert an ajax-sparql element programmatically</b> with Javascript code.</p>
+            <demo-snippet class="centered-demo">
+                <template>
+                    <div id="data"><h3>Data of available pharmacies:</h3></div>
 
-                    #oddSizes {
-                        --timer-days-font-description-size: 8px;
-                        --timer-days-font-number-size: 20px;
-                        --timer-days-font-text-size: 30px;
-                    }
+                    <script>
+                        function launchRequest(){
+                            var whatData = "rdfs:label";
 
-                    #mixingAll {
-                        --timer-days-background-color: #0288D1;
-                        --timer-days-border-color: none;
-                        --timer-days-font-color: #E1F5FE;
+                            //The \ symbol allow to write a string in multiple lines.
+                            var query = "select ?data where{\
+                            ?URI a schema:MedicalOrganization.\
+                            ?URI " + whatData + " ?data.}";
 
-                        --timer-days-hover-background-color: #01579B;
-                        --timer-days-hover-border-color: none;
-                        --timer-days-hover-font-color: white;  
+                            var request = document.createElement("ajax-sparql");
+                            request.id = "dynamic";
+                            request.url = "http://opendata.caceres.es/sparql/";
+                            request.query = query;
+                            console.log(query);
+                            request.calculateParams();
 
-                        --timer-days-font-number-size: 50px;
-                        --timer-days-font-text-size: 25px;   
-                    }
-                </style>
-                <p><timer-days id="blackAndWhite" target-date="2021-11-20T16:40:00"></timer-days></p>
-                <p><timer-days id="doesntChange" target-date="2021-11-20T16:40:00" before="I don't change even if the mouse's over me."></timer-days></p> 
-                <p><timer-days id="oddSizes" target-date="2021-11-20T16:40:00" before="I'm a bit small..." after="Can you read me?"></timer-days></p>
-                <p><timer-days id="mixingAll" target-date="2021-11-20T16:40:00" before="I'm a cool timer now ; )"></timer-days></p>
-            </template>
-        </demo-snippet>
+                            document.getElementById("data").appendChild(request);
+                        }
 
-    </div>
+                        launchRequest();
+                        var intervalData = setInterval(showData, 300);
 
-  </body>
+                        function showData(){
+                            var results = document.getElementById("dynamic").getResults();
+                            if (results != undefined){
+                                clearInterval(intervalData);
+
+                                results.forEach(function(pharmacie){
+                                    var div = document.createElement("div");
+                                    var text = document.createTextNode(pharmacie.data.value);
+                                    div.appendChild(text);
+                                    document.getElementById("data").appendChild(div);
+                                });
+                            }
+                        }
+                    </script>
+                </template>
+            </demo-snippet>
+        </div>
+    </body>
 </html>
