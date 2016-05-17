@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Ajax-sparql by Zevesh</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Ajax-sparql</h1>
+        <h2>A Polymer component to automatize an SPARQL request based in a well-formed query.</h2>
+        <a href="https://github.com/Zevesh/ajax-sparql" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h2>
+<a id="ajax-sparql" class="anchor" href="#ajax-sparql" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>&lt;ajax-sparql&gt;</h2>
+
+<p><code>ajax-sparql</code> is a simple component that automatizes the creation of a request for an SPARQL site just by taking an SPARQL query. That allows the code to be more readable, because you can see the original query instead of the resulting url. It can also be used to create queries based on the content of a variable, being not necessary to know the data at coding time. </p>
+
+<p>When creating an instance of this component, we need to know the URL of the site where we will execute the query and the query itself. Sometimes we also need the graph inside the site, but usually it is optional.</p>
+
+<h3>
+<a id="declaration-of-the-component" class="anchor" href="#declaration-of-the-component" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Declaration of the component.</h3>
+
+<p>When creating an element of <code>ajax-sparql</code> the properties <code>url</code> and <code>query</code> are always required, whereas <code>graph</code> is optional. There is another point to have in mind. This component have no <code>on-response</code> attribute, so the treatment of the data must be done manually. To achieve this, first we have to give it an <code>id</code> to simplify the later access. </p>
+
+<p>Example:</p>
+
+<pre><code>&lt;ajax-sparql 
+id="request"
+url="http://opendata.caceres.es/sparql/"
+graph="http://opendata.caceres.es/recurso/salud/centros/"
+query="select ?name ?latitude ?longitude where{
+  ?URI a schema:MedicalOrganization.
+  ?URI rdfs:label ?name.
+  ?URI geo:lat ?latitude.
+  ?URI geo:long ?longitude. 
+  }"&gt;
+&lt;/ajax-sparql&gt;
+</code></pre>
+
+<p>The <code>query</code> property admits various formats: in a single line, in multiple lines, with keywords in upper or lower case... Choose wherever you prefer to make your code more readable, although we recommend the lower-case, multiple-lines format. In the examples below the query is smaller just for show up purpose, but it works with any query you need.</p>
+
+<p>Example:</p>
+
+<pre><code>&lt;ajax-sparql 
+id="request"
+url="http://opendata.caceres.es/sparql/"
+graph="http://opendata.caceres.es/recurso/salud/centros/"
+query="select ?name where{ ?URI a schema:MedicalOrganization. ?URI rdfs:label ?name.}"&gt;
+&lt;/ajax-sparql&gt;
+
+&lt;ajax-sparql 
+id="request"
+url="http://opendata.caceres.es/sparql/"
+graph="http://opendata.caceres.es/recurso/salud/centros/"
+query="SELECT ?name WHERE{ ?URI a schema:MedicalOrganization. ?URI rdfs:label ?name.}"&gt;
+&lt;/ajax-sparql&gt;
+</code></pre>
+
+<h3>
+<a id="retrieval-of-results" class="anchor" href="#retrieval-of-results" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Retrieval of results.</h3>
+
+<p>As we are making an asynchronous request, the data will not be inmediately available. Thanks to the <code>id</code> we give to each element, it is easy to access each one in a separate way. To retrieve the data you can use some kind of observer or any other method you prefer, but here we present two options:</p>
+
+<ul>
+<li>
+<strong>If our element is included inside another.</strong>  Launch a function in the ready that makes asynchronous calls until some result is received.</li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>&lt;dom-module id="external-component"&gt;
+  &lt;template&gt;
+      &lt;ajax-sparql 
+      id="request"
+      url="http://opendata.caceres.es/sparql/"
+      graph="http://opendata.caceres.es/recurso/salud/centros/"
+      query="select ?name where{ ?URI a schema:MedicalOrganization. ?URI rdfs:label ?name.}"&gt;
+      &lt;/ajax-sparql&gt;
+  &lt;/template&gt;
+&lt;/dom-module&gt;  
+
+&lt;script&gt;
+  Polymer({
+    is: 'external-component',
+
+    ready: function(){
+      this.async(this.checkResults, 300);
+    },
+
+    checkResults: function(){
+      var result = this.$.request.getResults();
+      if (result == undefined){
+        this.async(this.checkResults, 300);
+      } else {
+        //Do what you need with the results:
+        console.log(result);
+      }
+    }
+  });
+&lt;/script&gt;
+</code></pre>
+
+<ul>
+<li>
+<strong>If the <code>ajax-sparql</code> element is outside any component.</strong> Create an interval that periodically checks if the there is some response. In affirmative case, stop the interval.</li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>&lt;ajax-sparql 
+id="request"
+url="http://opendata.caceres.es/sparql/"
+graph="http://opendata.caceres.es/recurso/salud/centros/"
+query="select ?name where{ ?URI a schema:MedicalOrganization. ?URI rdfs:label ?name.}"&gt;
+&lt;/ajax-sparql&gt;
+
+&lt;script&gt;
+  var interval = setInterval(checkResult, 300);
+
+  function checkResult(){
+      var result = document.getElementById("request").getResults();
+      if (result != undefined){
+        clearInterval(interval);
+
+        //Do what you need with the results:
+        console.log(result);
+      }
+  }
+&lt;/script&gt;
+</code></pre>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/Zevesh/ajax-sparql/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/Zevesh/ajax-sparql/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/Zevesh/ajax-sparql"></a> is maintained by <a href="https://github.com/Zevesh">Zevesh</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
